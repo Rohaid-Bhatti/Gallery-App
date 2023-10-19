@@ -4,16 +4,19 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.facebook.shimmer.ShimmerFrameLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.hzm.galleryapp.adapter.ImageAdapter
 import com.hzm.galleryapp.api.ImageService
 import com.hzm.galleryapp.api.RetrofitHelper
+import com.hzm.galleryapp.databinding.ActivityMainBinding
 import com.hzm.galleryapp.models.Hit
 import com.hzm.galleryapp.models.HitWithFavorite
 import com.hzm.galleryapp.repository.ImageRepository
@@ -23,16 +26,25 @@ import com.hzm.galleryapp.viewModels.MainViewModelFactory
 
 class MainActivity : AppCompatActivity() {
     lateinit var mainViewModel: MainViewModel
+    private lateinit var binding: ActivityMainBinding
+
+    // Add the ShimmerFrameLayout and RecyclerView variables
+    private lateinit var shimmerLayout: ShimmerFrameLayout
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         val repository = (application as ImageApplication).imageRepository
         mainViewModel =
             ViewModelProvider(this, MainViewModelFactory(repository)).get(MainViewModel::class.java)
 
-        val recyclerView: RecyclerView = findViewById(R.id.recyclerView)
+        // Initialize the ShimmerFrameLayout and RecyclerView
+        shimmerLayout = findViewById(R.id.shimmerLayout)
+        recyclerView = findViewById(R.id.recyclerView)
+
         recyclerView.layoutManager = LinearLayoutManager(this)
         val adapter = ImageAdapter(emptyList(), { clickedImage ->
             toggleFavorite(clickedImage)
@@ -41,26 +53,36 @@ class MainActivity : AppCompatActivity() {
 
         // Create an array of category TextViews
         val categoryViews = arrayOf(
-            findViewById<TextView>(R.id.bgCategory),
-            findViewById<TextView>(R.id.fashionCategory),
-            findViewById<TextView>(R.id.natureCategory),
-            findViewById<TextView>(R.id.scienceCategory),
-            findViewById<TextView>(R.id.educationCategory),
-            findViewById<TextView>(R.id.feelingCategory),
-            findViewById<TextView>(R.id.healthCategory),
-            findViewById<TextView>(R.id.peopleCategory),
-            findViewById<TextView>(R.id.religionCategory)
+            binding.bgCategory,
+            binding.fashionCategory,
+            binding.natureCategory,
+            binding.scienceCategory,
+            binding.educationCategory,
+            binding.feelingCategory,
+            binding.healthCategory,
+            binding.peopleCategory,
+            binding.religionCategory
         )
 
-        // Initialize the first category as selected
-//        categoryViews[0].setTextColor(resources.getColor(R.color.black))
+        // Set the first category as selected by default
+        categoryViews[0].setBackgroundResource(R.drawable.bg_black_textview)
+        categoryViews[0].setTextColor(resources.getColor(R.color.white))
+
+        mainViewModel.loadImagesByCategory("backgrounds")
 
         categoryViews.forEach { categoryView ->
             categoryView.setOnClickListener {
                 categoryViews.forEach {
-                    it.setTextColor(resources.getColor(R.color.light_grey))
+//                    it.setTextColor(resources.getColor(R.color.light_grey))
+                    it.setBackgroundResource(R.drawable.bg_textview)
+                    it.setTextColor(resources.getColor(R.color.black))
                 }
-                categoryView.setTextColor(resources.getColor(R.color.black))
+                // Set the background color of the selected category to black
+                categoryView.setBackgroundResource(R.drawable.bg_black_textview)
+
+                // Set the text color to white
+                categoryView.setTextColor(resources.getColor(R.color.white))
+//                categoryView.setTextColor(resources.getColor(R.color.black))
 
                 val selectedCategory = categoryView.text.toString()
                 mainViewModel.loadImagesByCategory(selectedCategory) // Load images based on the selected category
@@ -74,6 +96,18 @@ class MainActivity : AppCompatActivity() {
                 } ?: false // Default to false if the list is null
                 HitWithFavorite(hit, isFavorite)
             }
+
+            // Show or hide the shimmer effect based on my data
+            if (hitsWithFavorites.isEmpty()) {
+                recyclerView.visibility = View.INVISIBLE
+                shimmerLayout.visibility = View.VISIBLE
+                shimmerLayout.startShimmer()
+            } else {
+                shimmerLayout.stopShimmer()
+                shimmerLayout.visibility = View.INVISIBLE
+                recyclerView.visibility = View.VISIBLE
+            }
+
             adapter.data = hitsWithFavorites
             adapter.notifyDataSetChanged()
         })

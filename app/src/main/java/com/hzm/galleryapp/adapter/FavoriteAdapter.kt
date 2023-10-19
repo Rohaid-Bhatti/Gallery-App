@@ -1,5 +1,6 @@
 package com.hzm.galleryapp.adapter
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.hzm.galleryapp.DetailActivity
 import com.hzm.galleryapp.R
 import com.hzm.galleryapp.models.HitWithFavorite
 import com.hzm.galleryapp.roomDb.FavoriteEntity
@@ -44,15 +46,29 @@ class FavoriteAdapter(
             holder.buttonFavorite.setImageResource(R.drawable.heart)
         }
 
+        // Set a click listener for the item view
+        holder.itemView.setOnClickListener {
+            // Create an intent to open the DetailsActivity
+            val intent = Intent(holder.itemView.context, DetailActivity::class.java)
+
+            // Pass data related to the clicked image to the DetailsActivity
+            intent.putExtra("image_url", currentFavorite.largeImageURL)
+            intent.putExtra("likes", currentFavorite.likes)
+            intent.putExtra("views", currentFavorite.views)
+            intent.putExtra("comments", currentFavorite.comments)
+            intent.putExtra("downloads", currentFavorite.downloads)
+            intent.putExtra("tags", currentFavorite.tags)
+            intent.putExtra("type", currentFavorite.type)
+            intent.putExtra("user", currentFavorite.user)
+
+            // Start the DetailsActivity
+            holder.itemView.context.startActivity(intent)
+        }
+
         // Set a click listener for the remove button
         holder.buttonFavorite.setOnClickListener {
             onRemoveClick(currentFavorite)
         }
-
-//        // Set a click listener for the favorite icon
-//        holder.buttonFavorite.setOnClickListener {
-//            onFavoriteClick(currentFavorite)
-//        }
     }
 
     inner class FavoriteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

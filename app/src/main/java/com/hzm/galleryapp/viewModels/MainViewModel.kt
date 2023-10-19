@@ -22,10 +22,10 @@ class MainViewModel(private val repository: ImageRepository) : ViewModel() {
     // LiveData for favorite image IDs
     val favoriteImageIds: LiveData<List<Int>> = repository.favoriteImageIdsLiveData
 
-    init {
+    /*init {
         // Load images from the default category when the ViewModel is created
         loadImagesByCategory("backgrounds")
-    }
+    }*/
     fun loadImagesByCategory(category: String) {
         viewModelScope.launch {
             repository.getImages(1, category)
@@ -36,12 +36,6 @@ class MainViewModel(private val repository: ImageRepository) : ViewModel() {
     suspend fun isFavorite(id: Int): Boolean {
         return repository.isFavorite(id)
     }
-
-    /*fun refreshImages() {
-        viewModelScope.launch {
-            repository.getImages(1) // You can call this method to refresh the data
-        }
-    }*/
 
     // Function to fetch favorite image IDs
     fun fetchFavoriteImageIds() {

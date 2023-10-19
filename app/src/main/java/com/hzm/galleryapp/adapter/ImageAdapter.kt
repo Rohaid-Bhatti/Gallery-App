@@ -64,7 +64,6 @@ class ImageAdapter(
             // Create an intent to open the DetailsActivity
             val intent = Intent(holder.itemView.context, DetailActivity::class.java)
 
-            // Pass data related to the clicked image to the DetailsActivity
             intent.putExtra("image_url", currentImage.hit.largeImageURL)
             intent.putExtra("likes", currentImage.hit.likes)
             intent.putExtra("views", currentImage.hit.views)
@@ -73,6 +72,7 @@ class ImageAdapter(
             intent.putExtra("tags", currentImage.hit.tags)
             intent.putExtra("type", currentImage.hit.type)
             intent.putExtra("user", currentImage.hit.user)
+//            intent.putExtra("Hit", currentImage)
 
             // Start the DetailsActivity
             holder.itemView.context.startActivity(intent)
@@ -82,14 +82,27 @@ class ImageAdapter(
         // Set a click listener for the favorite icon
         holder.imageFavorite.setOnClickListener {
             // Check if the current image is heart
-            if (holder.imageFavorite.drawable.constantState ==
+            /*if (holder.imageFavorite.drawable.constantState ==
                 ContextCompat.getDrawable(holder.itemView.context, R.drawable.heart)?.constantState) {
                 // Change the image to heart_red
                 holder.imageFavorite.setImageResource(R.drawable.heart_red)
             } else {
                 // Change the image to heart
                 holder.imageFavorite.setImageResource(R.drawable.heart)
+            }*/
+
+            CoroutineScope(Dispatchers.IO).launch {
+                val isFavorite = viewModel.isFavorite(currentImage.hit.id)
+                // Update the UI on the main thread
+                withContext(Dispatchers.Main) {
+                    if (isFavorite) {
+                        holder.imageFavorite.setImageResource(R.drawable.heart_red)
+                    } else {
+                        holder.imageFavorite.setImageResource(R.drawable.heart)
+                    }
+                }
             }
+            notifyItemChanged(position)
 
             toggleFavorite(currentImage.hit)
         }
